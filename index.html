@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motion-Capture Data Publisher — Built From Scratch</title>
+<meta name="description" content="An original from-scratch build: a minimal, no-frills guide and launch setup that publishes optical motion-capture tracking data into a ROS core over VRPN." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --accent:#0891b2; --accent-soft:#e2f4f8; --ink:#16201f; --muted:#5d6b69;
+    --line:#dfe5e3; --bg:#fbfcfb; --card:#ffffff;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:0 28px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:.1em .4em;border-radius:4px;color:#0e7490}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.15;letter-spacing:-.01em}
+  /* Header */
+  header.hero{padding:88px 0 56px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 22px}
+  h1{font-size:clamp(2.6rem,6vw,4.1rem);margin:0 0 18px}
+  .lede{font-size:1.22rem;color:var(--muted);max-width:62ch;margin:0 0 28px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;font-size:.82rem}
+  .chip{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--muted);background:var(--card)}
+  /* Sections */
+  section{padding:54px 0;border-bottom:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+  h2{font-size:clamp(1.7rem,3.4vw,2.3rem);margin:0 0 20px}
+  h3{font-size:1.2rem;margin:0 0 6px}
+  p{margin:0 0 18px;max-width:68ch}
+  .muted{color:var(--muted)}
+  /* Stack grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:8px}
+  .tool{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .tool .t{font-family:var(--mono);font-size:.78rem;color:var(--accent);letter-spacing:.04em;margin-bottom:8px}
+  .tool h3{font-size:1.05rem;font-family:var(--sans);font-weight:600;margin-bottom:6px}
+  .tool p{font-size:.92rem;color:var(--muted);margin:0}
+  /* Pipeline / modules */
+  ol.flow{counter-reset:s;list-style:none;padding:0;margin:24px 0 0}
+  ol.flow li{position:relative;padding:18px 0 18px 56px;border-top:1px solid var(--line)}
+  ol.flow li:before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;left:0;top:18px;font-family:var(--mono);font-size:.8rem;color:var(--accent);border:1px solid var(--line);border-radius:8px;width:38px;height:38px;display:grid;place-items:center;background:var(--card)}
+  ol.flow li h3{font-family:var(--sans);font-size:1.02rem;font-weight:600;margin:0 0 4px}
+  ol.flow li p{margin:0;font-size:.93rem;color:var(--muted)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
+  .tag.on{background:#e6f7ec;color:#1c7a43}
+  .tag.off{background:#fdecea;color:#b23b2c}
+  /* Callout */
+  .callout{background:var(--accent-soft);border:1px solid #bce4ee;border-radius:14px;padding:24px 26px;margin-top:8px}
+  .callout p:last-child{margin:0}
+  /* Reflection list */
+  ul.learn{list-style:none;padding:0;margin:8px 0 0}
+  ul.learn li{padding:14px 0 14px 30px;border-top:1px solid var(--line);position:relative;color:var(--muted);max-width:68ch}
+  ul.learn li:before{content:"→";position:absolute;left:0;color:var(--accent);font-family:var(--mono)}
+  ul.learn li b{color:var(--ink);font-weight:600}
+  /* Footer */
+  footer{padding:48px 0 80px}
+  .credit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .credit .k{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  footer .fine{font-size:.8rem;color:var(--muted);margin-top:22px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">From-Scratch Build · Robotics Networking</p>
+    <h1>Motion-Capture Data Publisher</h1>
+    <p class="lede">The shortest possible path from an optical motion-capture system to live data inside ROS. This build is a focused, beginner-friendly guide and launch file that connects to the capture server over VRPN and publishes tracked positions as ROS topics — nothing more, nothing in the way. Written from scratch to learn the essentials.</p>
+    <div class="meta">
+      <span class="chip">ROS</span><span class="chip">Motion capture</span><span class="chip">VRPN</span>
+      <span class="chip">catkin</span><span class="chip">roslaunch</span><span class="chip">SSH</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">What it is</p>
+    <h2>The minimal bridge</h2>
+    <p>Before you build anything clever with motion-capture data, you have to get it into ROS at all. This project is that first, essential step distilled to its bones: log into the lab machine, install one package, make a tiny catkin package, write one launch file, and watch the tracked positions appear as ROS topics.</p>
+    <p>It deliberately does one thing. Using the <b>VRPN</b> client, it subscribes to the capture software and republishes every tracked body into a ROS core — the simplest reliable way to make the cameras' output available to any robot or script on the network.</p>
+    <div class="callout">
+      <p><b>The core idea I wanted to learn:</b> a clear minimal guide is worth more than a clever one. Anyone should be able to follow five steps and end up with live tracking topics they can subscribe to — that's the whole goal.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">The stack</p>
+    <h2>Tools under the hood</h2>
+    <p class="muted">A short list on purpose. Here is what each part contributes.</p>
+    <div class="grid">
+      <div class="tool"><div class="t">middleware</div><h3>ROS core</h3><p>The destination. Once the bridge runs, tracked bodies become ROS topics that any node can subscribe to.</p></div>
+      <div class="tool"><div class="t">protocol</div><h3>VRPN client</h3><p>The connector to the capture software — chosen here for its simplicity, with a single ROS package handling the link.</p></div>
+      <div class="tool"><div class="t">packaging</div><h3>catkin package</h3><p>A small workspace package created to hold the launch file and pull in the right dependencies.</p></div>
+      <div class="tool"><div class="t">config</div><h3>Launch file</h3><p>Where the capture server's IP, port, update rate and coordinate frame are set, so the client connects correctly.</p></div>
+      <div class="tool"><div class="t">access</div><h3>SSH</h3><p>The lab server is reached over SSH, so the whole setup happens on the machine that talks to the cameras.</p></div>
+      <div class="tool"><div class="t">timing</div><h3>120 Hz update</h3><p>The client is configured to pull poses at a high update frequency, keeping the ROS topics fresh and responsive.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">How it works</p>
+    <h2>Five steps to live topics</h2>
+    <p>The guide is short by design — each step builds directly on the last:</p>
+    <ol class="flow">
+      <li><h3>Log into the server <span class="tag on">step</span></h3><p>SSH into the lab machine that's connected to the motion-capture system.</p></li>
+      <li><h3>Install the VRPN package <span class="tag on">step</span></h3><p>Add the VRPN client to the ROS environment with a single package install.</p></li>
+      <li><h3>Create a catkin package <span class="tag on">step</span></h3><p>Make a small package to hold the launch configuration and its dependencies.</p></li>
+      <li><h3>Write the launch file <span class="tag on">step</span></h3><p>Point it at the capture server's IP and set the port, update rate and frame.</p></li>
+      <li><h3>Launch &amp; subscribe <span class="tag on">step</span></h3><p>Run the launch file, list the new topics, and write a subscriber to use the data.</p></li>
+      <li><h3>Build on it <span class="tag off">next</span></h3><p>Beyond this guide: filtering, logging, or fanning the data out further.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Using the data</p>
+    <h2>What you do once it's flowing</h2>
+    <p>The publisher is the foundation; the value comes from what subscribes to it:</p>
+    <ul class="learn">
+      <li><b>List the topics:</b> confirm the tracked bodies are being published before writing any code against them.</li>
+      <li><b>Write a subscriber:</b> a small script reads the live poses and acts on them however the project needs.</li>
+      <li><b>Set the right frame:</b> the launch file's coordinate frame and update rate determine how usable the data feels downstream.</li>
+      <li><b>Keep it simple:</b> the whole point is a dependable, minimal source of ground-truth position.</li>
+    </ul>
+    <p class="muted" style="margin-top:18px">In my rebuild the focus was the launch configuration: getting the server IP, port and frame right so the topics appear cleanly and a subscriber just works.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Reflection</p>
+    <h2>What rebuilding it taught me</h2>
+    <ul class="learn">
+      <li><b>Minimal is a virtue.</b> The most useful guide is the one a beginner can finish — scope discipline is itself a skill.</li>
+      <li><b>One launch file does a lot.</b> Almost the entire integration lives in a handful of parameters, once you know which ones matter.</li>
+      <li><b>The frame matters.</b> Coordinate frame and update rate quietly decide whether the downstream data is usable or confusing.</li>
+      <li><b>Foundations enable everything else.</b> This tiny bridge is the prerequisite for any richer motion-capture project that follows.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="credit">
+      <div class="k">About this build</div>
+      <p style="margin:0">An original, from-scratch build by <b>Andrea</b> — written to learn the minimal, reliable way to publish optical tracking data into ROS over VRPN. Plain HTML/CSS, deployed on GitHub Pages.</p>
+    </div>
+    <p class="fine">Built from scratch by Andrea · one of an ongoing series of learning builds.</p>
+  </div>
+</footer>
+</body>
+</html>
